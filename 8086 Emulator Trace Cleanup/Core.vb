@@ -29,11 +29,10 @@ Public Module CoreModule
             InputFile = GetCommandLineArgs().Last()
 
             For Each Line As String In File.ReadAllLines(InputFile)
-
                If Line = Nothing Then
-                  If Block.ToString() = PreviousBlock Then
+                  If PreviousBlock IsNot Nothing AndAlso Not Block.ToString() = Nothing AndAlso Block.ToString() = PreviousBlock Then
                      Count += 1
-                  Else
+                  ElseIf Not Block.ToString().Contains("[0x???] = ???") Then
                      OutputText.Append($"{Block}{NewLine}")
                   End If
                   PreviousBlock = Block.ToString()
@@ -47,10 +46,13 @@ Public Module CoreModule
                OutputText.Append(Block)
             End If
 
+            If Not OutputText.ToString().StartsWith(NewLine) Then
+               OutputText.Insert(0, NewLine)
+            End If
+
             File.WriteAllText(OutputFile, OutputText.ToString())
             File.Delete(InputFile)
             File.Move(OutputFile, InputFile)
-
             Console.WriteLine($"{Count} duplicate trace events removed.")
          End If
       Catch [Exception] As Exception
